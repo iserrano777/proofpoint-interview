@@ -1,0 +1,7 @@
+proofpoint/entities/Entity.class
+proofpoint/entities/ZipFile.class
+proofpoint/entities/ContainerEntity.class
+proofpoint/entities/Folder.class
+proofpoint/FileSystemManager.class
+proofpoint/entities/TextFile.class
+proofpoint/entities/Drive.class
