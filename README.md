@@ -1,4 +1,4 @@
-# Proofpoint File System Challenge
+# File System Challenge
 
 This is a Java-based in-memory file system implementation developed for the Proofpoint interview technical assessment.
 
