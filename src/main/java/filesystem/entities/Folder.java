@@ -1,10 +1,14 @@
 package proofpoint.entities;
 
+import java.io.Serializable;
+
 /**
  * Represents a folder in the in-memory file system.
  * A folder can contain other folders or files (text or zip).
  */
-public class Folder extends ContainerEntity {
+public class Folder extends ContainerEntity implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     /**
      * Constructs a new Folder with the given name and parent container.

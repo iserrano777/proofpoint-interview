@@ -1,5 +1,6 @@
 package proofpoint.entities;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,7 +15,8 @@ import java.util.Map;
  *
  * It manages a map of children by name to enforce unique naming under a parent.
  */
-public abstract class ContainerEntity extends Entity {
+public abstract class ContainerEntity extends Entity implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     // Stores child entities keyed by name for fast lookup
     protected Map<String, Entity> children = new HashMap<>();

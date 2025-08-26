@@ -1,10 +1,14 @@
 package proofpoint.entities;
 
+import java.io.Serializable;
+import java.time.LocalDateTime;
+
 /**
  * Represents a text file in the in-memory file system.
  * A text file cannot contain other entities and holds string content.
  */
-public class TextFile extends Entity {
+public class TextFile extends Entity implements Serializable {
+    private static final long serialVersionUID = 1L;
     private String content = "";
 
     /**
@@ -24,6 +28,8 @@ public class TextFile extends Entity {
      */
     public void setContent(String content) {
         this.content = content;
+        this.size = content.length(); // update size
+        this.updatedAt = LocalDateTime.now(); // update timestamp
     }
 
     /**

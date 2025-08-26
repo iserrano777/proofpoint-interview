@@ -1,12 +1,16 @@
 package proofpoint.entities;
 
+import java.io.Serializable;
+
 /**
  * Represents a Drive in the file system.
  *
  * A Drive is the root-level entity and cannot have a parent.
  * It can contain folders, zip files, and text files, just like a folder or zip file.
  */
-public class Drive extends ContainerEntity {
+public class Drive extends ContainerEntity implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     /**
      * Constructs a Drive with the given name.

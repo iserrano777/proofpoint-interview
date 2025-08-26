@@ -2,7 +2,10 @@ package proofpoint;
 
 import proofpoint.entities.*;
 
+import java.io.*;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -113,6 +116,35 @@ public class FileSystemManager {
         destination.addChild(source);
     }
 
+    public void copy(String sourcePath, String destinationPath) {
+        Entity source = resolve(sourcePath);
+        Entity dest = resolve(destinationPath);
+
+        if (!(dest instanceof ContainerEntity)) {
+            throw new IllegalArgumentException("Destination is not a folder-like entity");
+        }
+
+        ContainerEntity destination = (ContainerEntity) dest;
+
+        if (destination.hasChild(source.getName())) {
+            throw new IllegalArgumentException("Path already exists at destination");
+        }
+
+        Entity copied = deepCopy(source, destination);
+        destination.addChild(copied);
+    }
+
+    public List<Entity> list(String path) {
+        Entity source = resolve(path);
+
+        if (!(source instanceof ContainerEntity)) {
+            throw new IllegalArgumentException("Entity is not a folder-like container");
+        }
+
+        ContainerEntity container = (ContainerEntity) source;
+        return new ArrayList<>(container.getChildren());
+    }
+
     /**
      * Writes text content to a text file in the file system.
      *
@@ -158,4 +190,97 @@ public class FileSystemManager {
         }
         return current;
     }
+
+    public List<String> search(String name) {
+        List<String> result = new ArrayList<>();
+
+        for (Drive drive : drives.values()) {
+            searchRecursive(drive, name, result);
+        }
+
+        return result;
+    }
+
+    private void searchRecursive(Entity entity, String targetName, List<String> result) {
+        if (entity.getName().equals(targetName)) {
+            result.add(entity.getPath());
+        }
+
+        if (entity instanceof ContainerEntity) {
+            for (Entity child : ((ContainerEntity) entity).getChildren()) {
+                searchRecursive(child, targetName, result);
+            }
+        }
+    }
+
+    public void rename(String path, String newName) {
+        Entity entity = resolve(path);
+
+        if (entity.getParent() == null) {
+            // It's a drive — just rename the drive in the `drives` map
+            if (drives.containsKey(newName)) {
+                throw new IllegalArgumentException("Drive with name already exists: " + newName);
+            }
+            drives.remove(entity.getName());
+            entity.setName(newName);  // assuming you have a setter or protected access
+            drives.put(newName, (Drive) entity);
+        } else {
+            ContainerEntity parent = (ContainerEntity) entity.getParent();
+            if (parent.hasChild(newName)) {
+                throw new IllegalArgumentException("An entity with that name already exists in the parent");
+            }
+            parent.removeChild(entity.getName());
+            entity.setName(newName);  // again, setter or protected access needed
+            parent.addChild(entity);
+        }
+    }
+
+    public void saveToDisk(String filename) {
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(filename))) {
+            out.writeObject(drives);
+            System.out.println("File system saved to disk.");
+        } catch (IOException e) {
+            throw new RuntimeException("Error saving to disk", e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public void loadFromDisk(String filename) {
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(filename))) {
+            Map<String, Drive> loadedDrives = (Map<String, Drive>) in.readObject();
+            drives.clear();
+            drives.putAll(loadedDrives);
+            System.out.println("File system loaded from disk.");
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException("Error loading from disk", e);
+        }
+    }
+
+    private Entity deepCopy(Entity original, ContainerEntity newParent) {
+        if (original instanceof TextFile) {
+            TextFile origFile = (TextFile) original;
+            TextFile copy = new TextFile(origFile.getName(), newParent);
+            copy.setContent(origFile.getContent());
+            return copy;
+        } else if (original instanceof Folder) {
+            Folder origFolder = (Folder) original;
+            Folder copy = new Folder(origFolder.getName(), newParent);
+            for (Entity child : origFolder.getChildren()) {
+                copy.addChild(deepCopy(child, copy));
+            }
+            return copy;
+        } else if (original instanceof ZipFile) {
+            ZipFile origZip = (ZipFile) original;
+            ZipFile copy = new ZipFile(origZip.getName(), newParent);
+            for (Entity child : origZip.getChildren()) {
+                copy.addChild(deepCopy(child, copy));
+            }
+            return copy;
+        } else {
+            throw new IllegalArgumentException("Unsupported entity type");
+        }
+    }
+
 }
+
+
