@@ -1,9 +1,9 @@
-package proofpoint;
+package filesystem;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import proofpoint.entities.Entity;
-import proofpoint.entities.TextFile;
+import filesystem.entities.Entity;
+import filesystem.entities.TextFile;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -55,11 +55,14 @@ public class FileSystemManagerTest {
     @Test
     void testMoveFile() {
         fsm.create("zipfile", "Archive.zip", "C\\Projects");
-        fsm.create("folder", "Docs", "C\\Projects\\Archive.zip");
+        fsm.create("folder", "Docs", "C\\Projects");
 
-        fsm.move("C\\Projects\\README.txt", "C\\Projects\\Archive.zip\\Docs");
+        fsm.move("C\\Projects\\README.txt", "C\\Projects\\Archive.zip");
 
-        assertNotNull(fsm.resolve("C\\Projects\\Archive.zip\\Docs\\README.txt"));
+
+        // The README.txt is now inside the zip root
+        assertNotNull(fsm.resolve("C\\Projects\\Archive.zip\\README.txt"));
+
         assertThrows(IllegalArgumentException.class, () -> fsm.resolve("C\\Projects\\README.txt"));
     }
 
